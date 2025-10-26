@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Login - Help Desk{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-base-100">
+    <div class="card w-full max-w-md bg-base-200 shadow-2xl">
+        <div class="card-body">
+            <div class="text-center mb-6">
+                <i class="fas fa-headset text-4xl text-primary mb-2"></i>
+                <h2 class="card-title text-2xl justify-center">Login</h2>
+                <p class="text-base-content/70">Acesse sua conta do Help Desk</p>
+            </div>
+            
+            <form method="POST">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Email</span>
+                    </label>
+                    <input type="email" name="email" placeholder="seu@email.com" 
+                           class="input input-bordered" required>
+                </div>
+                
+                <div class="form-control mt-4">
+                    <label class="label">
+                        <span class="label-text">Senha</span>
+                    </label>
+                    <input type="password" name="senha" placeholder="••••••••" 
+                           class="input input-bordered" required>
+                    <label class="label">
+                        <a href="{{ url_for('recuperar_senha') }}" 
+                           class="label-text-alt link link-hover">Esqueceu a senha?</a>
+                    </label>
+                </div>
+                
+                <div class="form-control mt-6">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt"></i>
+                        Entrar
+                    </button>
+                </div>
+            </form>
+            
+            <div class="divider">OU</div>
+            
+            <div class="text-center">
+                <p class="text-sm">Não tem conta?</p>
+                <a href="{{ url_for('cadastro') }}" class="btn btn-outline btn-sm mt-2">
+                    <i class="fas fa-user-plus"></i>
+                    Criar Conta
+                </a>
+            </div>
+
+            <!-- Credenciais de teste -->
+            <div class="mt-6 p-4 bg-info/10 rounded-lg">
+                <h4 class="font-semibold text-sm mb-2">🔑 Credenciais de Teste:</h4>
+                <div class="text-xs space-y-1">
+                    <p><strong>Admin:</strong> admin@helpdesk.com / admin123</p>
+                    <p class="opacity-70">Ou crie uma nova conta como cliente</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

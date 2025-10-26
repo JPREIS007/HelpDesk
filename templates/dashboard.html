@@ -1,0 +1,234 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Help Desk{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+            <h1 class="text-3xl font-bold">Dashboard</h1>
+            <p class="text-base-content/70">Bem-vindo(a), {{ session.user_name }}!</p>
+        </div>
+        
+        {% if session.user_profile == 'cliente' %}
+        <a href="{{ url_for('novo_chamado') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i>
+            Novo Chamado
+        </a>
+        {% endif %}
+    </div>
+
+    <!-- Estatísticas -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="stat bg-base-200 rounded-lg">
+            <div class="stat-figure text-primary">
+                <i class="fas fa-ticket-alt text-2xl"></i>
+            </div>
+            <div class="stat-title">Total</div>
+            <div class="stat-value text-primary">{{ stats.total }}</div>
+        </div>
+        
+        <div class="stat bg-base-200 rounded-lg">
+            <div class="stat-figure text-error">
+                <i class="fas fa-exclamation-circle text-2xl"></i>
+            </div>
+            <div class="stat-title">Abertos</div>
+            <div class="stat-value text-error">{{ stats.abertos }}</div>
+        </div>
+        
+        <div class="stat bg-base-200 rounded-lg">
+            <div class="stat-figure text-warning">
+                <i class="fas fa-clock text-2xl"></i>
+            </div>
+            <div class="stat-title">Em Andamento</div>
+            <div class="stat-value text-warning">{{ stats.em_andamento }}</div>
+        </div>
+        
+        <div class="stat bg-base-200 rounded-lg">
+            <div class="stat-figure text-success">
+                <i class="fas fa-check-circle text-2xl"></i>
+            </div>
+            <div class="stat-title">Resolvidos</div>
+            <div class="stat-value text-success">{{ stats.resolvidos }}</div>
+        </div>
+    </div>
+
+    <!-- Tabela de Chamados -->
+    <div class="card bg-base-200 shadow-lg">
+        <div class="card-body">
+            <h2 class="card-title">
+                <i class="fas fa-list"></i>
+                {% if session.user_profile == 'cliente' %}Meus Chamados{% else %}Chamados Recentes{% endif %}
+            </h2>
+            
+            {% if chamados %}
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Protocolo</th>
+                            <th>Título</th>
+                            {% if session.user_profile != 'cliente' %}
+                            <th>Cliente</th>
+                            {% endif %}
+                            <th>Prioridade</th>
+                            <th>Status</th>
+                            <th>Data</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for chamado in chamados %}
+                        <tr>
+                            <td>
+                                <span class="font-mono text-sm">{{ chamado.numero_protocolo }}</span>
+                            </td>
+                            <td>
+                                <div class="font-semibold">{{ chamado.titulo }}</div>
+                                <div class="text-sm opacity-50">{{ chamado.tipo_problema.replace('_', ' ').title() }}</div>
+                            </td>
+                            {% if session.user_profile != 'cliente' %}
+                            <td>{{ chamado.cliente_nome or 'N/A' }}</td>
+                            {% endif %}
+                            <td>
+                                {% if chamado.prioridade == 'alta' %}
+                                    <div class="badge badge-error">Alta</div>
+                                {% elif chamado.prioridade == 'media' %}
+                                    <div class="badge badge-warning">Média</div>
+                                {% else %}
+                                    <div class="badge badge-info">Baixa</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if chamado.status == 'aberto' %}
+                                    <div class="badge badge-error">Aberto</div>
+                                {% elif chamado.status == 'em_triagem' %}
+                                    <div class="badge badge-warning">Em Triagem</div>
+                                {% elif chamado.status == 'em_atendimento' %}
+                                    <div class="badge badge-info">Em Atendimento</div>
+                                {% elif chamado.status == 'resolvido' %}
+                                    <div class="badge badge-success">Resolvido</div>
+                                {% elif chamado.status == 'fechado' %}
+                                    <div class="badge badge-neutral">Fechado</div>
+                                {% endif %}
+                            </td>
+                            <td class="text-sm">
+                                {{ chamado.data_criacao.split(' ')[0] if chamado.data_criacao else 'N/A' }}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('visualizar_chamado', id=chamado.id) }}" 
+                                   class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-inbox text-4xl text-base-content/20 mb-4"></i>
+                <p class="text-base-content/50">
+                    {% if session.user_profile == 'cliente' %}
+                        Você não tem chamados ainda.
+                    {% else %}
+                        Nenhum chamado encontrado.
+                    {% endif %}
+                </p>
+                {% if session.user_profile == 'cliente' %}
+                <a href="{{ url_for('novo_chamado') }}" class="btn btn-primary mt-4">
+                    <i class="fas fa-plus"></i>
+                    Criar Primeiro Chamado
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Gráfico para Staff -->
+    {% if session.user_profile in ['administrador', 'atendente'] %}
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div class="card bg-base-200 shadow-lg">
+            <div class="card-body">
+                <h3 class="card-title">
+                    <i class="fas fa-chart-line"></i>
+                    Chamados por Status
+                </h3>
+                <canvas id="statusChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+        
+        <div class="card bg-base-200 shadow-lg">
+            <div class="card-body">
+                <h3 class="card-title">
+                    <i class="fas fa-chart-bar"></i>
+                    Últimos 30 Dias
+                </h3>
+                <canvas id="dailyChart" width="400" height="200"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Buscar dados dos gráficos
+        fetch('/api/chamados-stats')
+            .then(response => response.json())
+            .then(data => {
+                // Gráfico por status
+                const statusCtx = document.getElementById('statusChart').getContext('2d');
+                new Chart(statusCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.por_status.map(item => item.status.replace('_', ' ')),
+                        datasets: [{
+                            data: data.por_status.map(item => item.total),
+                            backgroundColor: [
+                                '#ef4444', // error
+                                '#f59e0b', // warning 
+                                '#3b82f6', // info
+                                '#10b981', // success
+                                '#6b7280'  // neutral
+                            ]
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                position: 'bottom'
+                            }
+                        }
+                    }
+                });
+
+                // Gráfico diário
+                const dailyCtx = document.getElementById('dailyChart').getContext('2d');
+                new Chart(dailyCtx, {
+                    type: 'line',
+                    data: {
+                        labels: data.por_dia.map(item => item.data),
+                        datasets: [{
+                            label: 'Chamados',
+                            data: data.por_dia.map(item => item.total),
+                            borderColor: '#3b82f6',
+                            backgroundColor: '#3b82f6',
+                            tension: 0.3
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            });
+    </script>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,140 @@
+{% extends "base.html" %}
+
+{% block title %}Gerenciar Usuários - Help Desk{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold">Gerenciar Usuários</h1>
+            <p class="text-base-content/70">Administração de contas do sistema</p>
+        </div>
+        <a href="{{ url_for('cadastro') }}" class="btn btn-primary">
+            <i class="fas fa-user-plus"></i>
+            Novo Usuário
+        </a>
+    </div>
+
+    <!-- Tabela de Usuários -->
+    <div class="card bg-base-200 shadow-lg">
+        <div class="card-body">
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Usuário</th>
+                            <th>Perfil</th>
+                            <th>Status</th>
+                            <th>Chamados</th>
+                            <th>Data Cadastro</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for usuario in usuarios %}
+                        <tr>
+                            <td>{{ usuario.id }}</td>
+                            <td>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-10 h-10 bg-primary text-primary-content rounded-full flex items-center justify-center">
+                                        {{ usuario.nome[0].upper() if usuario.nome else '?' }}
+                                    </div>
+                                    <div>
+                                        <div class="font-bold">{{ usuario.nome }}</div>
+                                        <div class="text-sm opacity-50">{{ usuario.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if usuario.perfil == 'administrador' %}
+                                    <div class="badge badge-error">Administrador</div>
+                                {% elif usuario.perfil == 'atendente' %}
+                                    <div class="badge badge-warning">Atendente</div>
+                                {% elif usuario.perfil == 'tecnico' %}
+                                    <div class="badge badge-info">Técnico</div>
+                                {% else %}
+                                    <div class="badge badge-neutral">Cliente</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if usuario.ativo %}
+                                    <div class="badge badge-success">Ativo</div>
+                                {% else %}
+                                    <div class="badge badge-error">Inativo</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="badge badge-neutral">{{ usuario.total_chamados or 0 }}</div>
+                            </td>
+                            <td class="text-sm">
+                                {{ usuario.data_criacao.split(' ')[0] if usuario.data_criacao else 'N/A' }}
+                            </td>
+                            <td>
+                                <div class="flex gap-2">
+                                    <form method="POST" action="{{ url_for('toggle_usuario_status', id=usuario.id) }}" class="inline">
+                                        {% if usuario.ativo %}
+                                            <button type="submit" class="btn btn-error btn-sm" 
+                                                    onclick="return confirm('Desativar usuário {{ usuario.nome }}?')">
+                                                <i class="fas fa-ban"></i>
+                                            </button>
+                                        {% else %}
+                                            <button type="submit" class="btn btn-success btn-sm"
+                                                    onclick="return confirm('Ativar usuário {{ usuario.nome }}?')">
+                                                <i class="fas fa-check"></i>
+                                            </button>
+                                        {% endif %}
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estatísticas de Usuários -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="stat bg-base-200 rounded-lg">
+            <div class="stat-figure text-neutral">
+                <i class="fas fa-users text-2xl"></i>
+            </div>
+            <div class="stat-title">Total</div>
+            <div class="stat-value text-neutral">{{ usuarios|length }}</div>
+        </div>
+        
+        <div class="stat bg-base-200 rounded-lg">
+            <div class="stat-figure text-success">
+                <i class="fas fa-user-check text-2xl"></i>
+            </div>
+            <div class="stat-title">Ativos</div>
+            <div class="stat-value text-success">
+                {{ usuarios|selectattr('ativo', 'equalto', 1)|list|length }}
+            </div>
+        </div>
+        
+        <div class="stat bg-base-200 rounded-lg">
+            <div class="stat-figure text-warning">
+                <i class="fas fa-user-tie text-2xl"></i>
+            </div>
+            <div class="stat-title">Staff</div>
+            <div class="stat-value text-warning">
+                {{ usuarios|selectattr('perfil', 'in', ['administrador', 'atendente', 'tecnico'])|list|length }}
+            </div>
+        </div>
+        
+        <div class="stat bg-base-200 rounded-lg">
+            <div class="stat-figure text-info">
+                <i class="fas fa-user-friends text-2xl"></i>
+            </div>
+            <div class="stat-title">Clientes</div>
+            <div class="stat-value text-info">
+                {{ usuarios|selectattr('perfil', 'equalto', 'cliente')|list|length }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

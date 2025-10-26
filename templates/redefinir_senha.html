@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %}Redefinir Senha - Help Desk{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-base-100">
+    <div class="card w-full max-w-md bg-base-200 shadow-2xl">
+        <div class="card-body">
+            <div class="text-center mb-6">
+                <i class="fas fa-lock text-4xl text-primary mb-2"></i>
+                <h2 class="card-title text-2xl justify-center">Nova Senha</h2>
+                <p class="text-base-content/70">Digite sua nova senha</p>
+            </div>
+            
+            <form method="POST">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Nova Senha</span>
+                    </label>
+                    <input type="password" name="nova_senha" placeholder="••••••••" 
+                           class="input input-bordered" required minlength="6">
+                    <label class="label">
+                        <span class="label-text-alt">Mínimo 6 caracteres</span>
+                    </label>
+                </div>
+                
+                <div class="form-control mt-6">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save"></i>
+                        Redefinir Senha
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero min-h-screen" style="background-image: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KICA8ZGVmcz4KICAgIDxwYXR0ZXJuIGlkPSJncmlkIiB3aWR0aD0iMTAiIGhlaWdodD0iMTAiIHBhdHRlcm5Vbml0cz0idXNlclNwYWNlT25Vc2UiPgogICAgICA8cGF0aCBkPSJNIDEwIDAgTCAwIDAgMCAxMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMzMzIiBzdHJva2Utd2lkdGg9IjAuNSIgb3BhY2l0eT0iMC4yIi8+CiAgICA8L3BhdHRlcm4+CiAgPC9kZWZzPgogIDxyZWN0IHdpZHRoPSIxMDAlIiBoZWlnaHQ9IjEwMCUiIGZpbGw9InVybCgjZ3JpZCkiLz4KPC9zdmc+');">
+    <div class="hero-overlay bg-base-100 bg-opacity-90"></div>
+    <div class="hero-content text-center">
+        <div class="max-w-md">
+            <div class="mb-8">
+                <i class="fas fa-headset text-6xl text-primary mb-4"></i>
+                <h1 class="text-5xl font-bold">Help Desk</h1>
+                <p class="text-xl text-base-content/70 mt-2">Provedor de Internet</p>
+            </div>
+            
+            <p class="py-6 text-lg">
+                Sistema robusto de gestão de chamados com processamento concorrente, 
+                filas de prioridade e auditoria completa.
+            </p>
+            
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <a href="{{ url_for('login') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Fazer Login
+                </a>
+                <a href="{{ url_for('cadastro') }}" class="btn btn-outline btn-lg">
+                    <i class="fas fa-user-plus"></i>
+                    Criar Conta
+                </a>
+            </div>
+            
+            <!-- Funcionalidades destacadas -->
+            <div class="mt-12">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 text-sm">
+                    <div class="flex flex-col items-center p-4 bg-base-200 rounded-lg">
+                        <i class="fas fa-bolt text-2xl text-accent mb-2"></i>
+                        <span class="font-semibold">Processamento Rápido</span>
+                        <span class="text-xs opacity-70">Threads concorrentes</span>
+                    </div>
+                    <div class="flex flex-col items-center p-4 bg-base-200 rounded-lg">
+                        <i class="fas fa-sort-amount-up text-2xl text-accent mb-2"></i>
+                        <span class="font-semibold">Filas de Prioridade</span>
+                        <span class="text-xs opacity-70">Atendimento inteligente</span>
+                    </div>
+                    <div class="flex flex-col items-center p-4 bg-base-200 rounded-lg">
+                        <i class="fas fa-shield-alt text-2xl text-accent mb-2"></i>
+                        <span class="font-semibold">Auditoria Total</span>
+                        <span class="text-xs opacity-70">Logs completos</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Cadastro - Help Desk{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex items-center justify-center bg-base-100 py-8">
+    <div class="card w-full max-w-md bg-base-200 shadow-2xl">
+        <div class="card-body">
+            <div class="text-center mb-6">
+                <i class="fas fa-user-plus text-4xl text-primary mb-2"></i>
+                <h2 class="card-title text-2xl justify-center">Criar Conta</h2>
+                <p class="text-base-content/70">Cadastre-se no Help Desk</p>
+            </div>
+            
+            <form method="POST">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Nome Completo</span>
+                    </label>
+                    <input type="text" name="nome" placeholder="Seu nome completo" 
+                           class="input input-bordered" required>
+                </div>
+                
+                <div class="form-control mt-4">
+                    <label class="label">
+                        <span class="label-text">Email</span>
+                    </label>
+                    <input type="email" name="email" placeholder="seu@email.com" 
+                           class="input input-bordered" required>
+                </div>
+                
+                <div class="form-control mt-4">
+                    <label class="label">
+                        <span class="label-text">Senha</span>
+                    </label>
+                    <input type="password" name="senha" placeholder="••••••••" 
+                           class="input input-bordered" required minlength="6">
+                    <label class="label">
+                        <span class="label-text-alt">Mínimo 6 caracteres</span>
+                    </label>
+                </div>
+                
+                {% if session.user_profile == 'administrador' %}
+                <div class="form-control mt-4">
+                    <label class="label">
+                        <span class="label-text">Tipo de Usuário</span>
+                    </label>
+                    <select name="perfil" class="select select-bordered">
+                        <option value="cliente">Cliente</option>
+                        <option value="atendente">Atendente</option>
+                        <option value="tecnico">Técnico de Campo</option>
+                        <option value="administrador">Administrador</option>
+                    </select>
+                </div>
+                {% endif %}
+                
+                <div class="form-control mt-6">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-user-plus"></i>
+                        Criar Conta
+                    </button>
+                </div>
+            </form>
+            
+            <div class="divider">OU</div>
+            
+            <div class="text-center">
+                <p class="text-sm">Já tem conta?</p>
+                <a href="{{ url_for('login') }}" class="btn btn-outline btn-sm mt-2">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Fazer Login
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

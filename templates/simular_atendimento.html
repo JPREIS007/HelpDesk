@@ -1,0 +1,222 @@
+{% extends "base.html" %}
+
+{% block title %}Simulação de Atendimento - Help Desk{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold">Simulação de Atendimento</h1>
+            <p class="text-base-content/70">Sistema de processamento concorrente com threads</p>
+        </div>
+    </div>
+
+    <!-- Status da Simulação -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="stat bg-base-200 rounded-lg">
+            <div class="stat-figure">
+                {% if status.ativa %}
+                    <i class="fas fa-play-circle text-2xl text-success"></i>
+                {% else %}
+                    <i class="fas fa-stop-circle text-2xl text-error"></i>
+                {% endif %}
+            </div>
+            <div class="stat-title">Status</div>
+            <div class="stat-value {{ 'text-success' if status.ativa else 'text-error' }}">
+                {{ 'Ativa' if status.ativa else 'Parada' }}
+            </div>
+        </div>
+        
+        <div class="stat bg-base-200 rounded-lg">
+            <div class="stat-figure text-warning">
+                <i class="fas fa-microchip text-2xl"></i>
+            </div>
+            <div class="stat-title">Threads Ativas</div>
+            <div class="stat-value text-warning">{{ status.threads_ativas }}</div>
+        </div>
+        
+        <div class="stat bg-base-200 rounded-lg">
+            <div class="stat-figure text-info">
+                <i class="fas fa-clock text-2xl"></i>
+            </div>
+            <div class="stat-title">Em Processamento</div>
+            <div class="stat-value text-info">{{ status.chamados_processamento }}</div>
+        </div>
+    </div>
+
+    <!-- Controles de Simulação -->
+    <div class="card bg-base-200 shadow-lg">
+        <div class="card-body">
+            <h2 class="card-title">
+                <i class="fas fa-cogs text-primary"></i>
+                Controles de Simulação
+            </h2>
+            
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                    <div class="font-semibold">Como funciona a simulação:</div>
+                    <ul class="text-sm mt-2 list-disc list-inside space-y-1">
+                        <li>Sistema utiliza threads Python para simular processamento concorrente</li>
+                        <li>Chamados são processados por ordem de prioridade (filas prioritárias)</li>
+                        <li>Cada thread simula tempo de atendimento baseado na complexidade</li>
+                        <li>Máximo de 5 chamados processados simultaneamente</li>
+                        <li>Status é atualizado automaticamente após processamento</li>
+                    </ul>
+                </div>
+            </div>
+            
+            <form method="POST" class="space-y-4">
+                {% if not status.ativa %}
+                <button type="submit" name="acao" value="iniciar" class="btn btn-success btn-lg">
+                    <i class="fas fa-play"></i>
+                    Iniciar Simulação de Atendimento
+                </button>
+                <p class="text-sm text-base-content/70">
+                    Iniciará o processamento automático de até 5 chamados pendentes usando threads concorrentes
+                </p>
+                {% else %}
+                <button type="submit" name="acao" value="parar" class="btn btn-error btn-lg">
+                    <i class="fas fa-stop"></i>
+                    Parar Simulação
+                </button>
+                <p class="text-sm text-base-content/70">
+                    Interromperá todas as threads de processamento ativas
+                </p>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+
+    <!-- Detalhes Técnicos -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Conceitos de SO -->
+        <div class="card bg-base-200 shadow-lg">
+            <div class="card-body">
+                <h3 class="card-title">
+                    <i class="fas fa-graduation-cap text-primary"></i>
+                    Conceitos de Sistemas Operacionais
+                </h3>
+                
+                <div class="space-y-4">
+                    <div>
+                        <h4 class="font-semibold flex items-center gap-2">
+                            <i class="fas fa-list-ol text-primary"></i>
+                            Filas de Prioridade
+                        </h4>
+                        <p class="text-sm text-base-content/70">
+                            Chamados são ordenados automaticamente: Alta → Média → Baixa, 
+                            garantindo que problemas críticos sejam processados primeiro.
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold flex items-center gap-2">
+                            <i class="fas fa-code-branch text-primary"></i>
+                            Threading Concorrente
+                        </h4>
+                        <p class="text-sm text-base-content/70">
+                            Múltiplas threads Python processam chamados simultaneamente, 
+                            simulando o comportamento de um sistema de atendimento real.
+                        </p>
+                    </div>
+                    
+                    <div>
+                        <h4 class="font-semibold flex items-center gap-2">
+                            <i class="fas fa-sync-alt text-primary"></i>
+                            Sincronização
+                        </h4>
+                        <p class="text-sm text-base-content/70">
+                            Threads acessam o banco de dados de forma thread-safe, 
+                            evitando condições de corrida e garantindo integridade.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status em Tempo Real -->
+        <div class="card bg-base-200 shadow-lg">
+            <div class="card-body">
+                <h3 class="card-title">
+                    <i class="fas fa-monitor-heart-rate text-primary"></i>
+                    Monitoramento em Tempo Real
+                </h3>
+                
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span>Sistema de Simulação:</span>
+                        <div class="flex items-center gap-2">
+                            <div class="w-2 h-2 rounded-full {{ 'bg-success animate-pulse' if status.ativa else 'bg-error' }}"></div>
+                            <span class="text-sm">{{ 'Online' if status.ativa else 'Offline' }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span>Threads Trabalhadoras:</span>
+                        <span class="badge badge-warning">{{ status.threads_ativas }}/5</span>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span>Chamados na Fila:</span>
+                        <span class="badge badge-info">{{ status.chamados_processamento }}</span>
+                    </div>
+                </div>
+                
+                {% if status.ativa %}
+                <div class="mt-4 p-3 bg-success/10 rounded-lg">
+                    <div class="flex items-center gap-2 text-success">
+                        <i class="fas fa-spinner animate-spin"></i>
+                        <span class="font-semibold">Processamento Ativo</span>
+                    </div>
+                    <p class="text-xs mt-1">
+                        Threads estão processando chamados em background. 
+                        Atualize a página para ver o progresso.
+                    </p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Logs de Atividade -->
+    <div class="card bg-base-200 shadow-lg">
+        <div class="card-body">
+            <h3 class="card-title">
+                <i class="fas fa-terminal text-primary"></i>
+                Algoritmo de Simulação
+            </h3>
+            
+            <div class="mockup-code">
+                <pre data-prefix="1"><code>def simular_atendimento_thread(chamado_id, tempo_estimado):</code></pre>
+                <pre data-prefix="2"><code>    # Simular processamento com sleep</code></pre>
+                <pre data-prefix="3"><code>    time.sleep(tempo_estimado)</code></pre>
+                <pre data-prefix="4"><code>    </code></pre>
+                <pre data-prefix="5"><code>    # Atualizar status thread-safe</code></pre>
+                <pre data-prefix="6"><code>    conn = get_db_connection()</code></pre>
+                <pre data-prefix="7"><code>    conn.execute('UPDATE chamados SET status = "resolvido"')</code></pre>
+                <pre data-prefix="8"><code>    conn.commit()</code></pre>
+            </div>
+            
+            <div class="mt-4 text-sm text-base-content/70">
+                <strong>Tempo de processamento por prioridade:</strong>
+                <ul class="list-disc list-inside mt-2 space-y-1">
+                    <li>🔴 Alta Prioridade: ~2 minutos (120s)</li>
+                    <li>🟡 Média Prioridade: ~5 minutos (300s)</li>
+                    <li>🔵 Baixa Prioridade: ~10 minutos (600s)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Auto-refresh a cada 10 segundos se simulação estiver ativa
+    {% if status.ativa %}
+    setTimeout(() => {
+        window.location.reload();
+    }, 10000);
+    {% endif %}
+</script>
+{% endblock %}

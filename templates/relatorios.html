@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+
+{% block title %}Relatórios - Help Desk{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div class="flex justify-between items-center">
+        <div>
+            <h1 class="text-3xl font-bold">Relatórios e Dashboards</h1>
+            <p class="text-base-content/70">Análise de performance e estatísticas do sistema</p>
+        </div>
+    </div>
+
+    <!-- Gráficos Principais -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Status dos Chamados -->
+        <div class="card bg-base-200 shadow-lg">
+            <div class="card-body">
+                <h3 class="card-title">
+                    <i class="fas fa-chart-pie text-primary"></i>
+                    Distribuição por Status
+                </h3>
+                <canvas id="statusChart" width="400" height="300"></canvas>
+                
+                <!-- Legenda -->
+                <div class="mt-4 grid grid-cols-2 gap-2 text-sm">
+                    {% for item in status_report %}
+                    <div class="flex justify-between">
+                        <span>{{ item.status.replace('_', ' ').title() }}:</span>
+                        <span class="font-semibold">{{ item.total }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Prioridades -->
+        <div class="card bg-base-200 shadow-lg">
+            <div class="card-body">
+                <h3 class="card-title">
+                    <i class="fas fa-chart-bar text-primary"></i>
+                    Chamados por Prioridade
+                </h3>
+                <canvas id="prioridadeChart" width="400" height="300"></canvas>
+                
+                <!-- Legenda -->
+                <div class="mt-4 grid grid-cols-3 gap-2 text-sm">
+                    {% for item in prioridade_report %}
+                    <div class="flex justify-between">
+                        <span>{{ item.prioridade.title() }}:</span>
+                        <span class="font-semibold">{{ item.total }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tipos de Problema -->
+    <div class="card bg-base-200 shadow-lg">
+        <div class="card-body">
+            <h3 class="card-title">
+                <i class="fas fa-chart-line text-primary"></i>
+                Tipos de Problemas Mais Comuns
+            </h3>
+            <canvas id="tiposChart" width="800" height="400"></canvas>
+        </div>
+    </div>
+
+    <!-- Performance dos Atendentes -->
+    <div class="card bg-base-200 shadow-lg">
+        <div class="card-body">
+            <h3 class="card-title">
+                <i class="fas fa-users text-primary"></i>
+                Performance da Equipe
+            </h3>
+            
+            {% if performance %}
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Atendente/Técnico</th>
+                            <th>Total de Chamados</th>
+                            <th>Tempo Médio (s)</th>
+                            <th>Performance</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for item in performance %}
+                        <tr>
+                            <td>
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 bg-primary text-primary-content rounded-full flex items-center justify-center text-sm">
+                                        {{ item.nome[0].upper() if item.nome else '?' }}
+                                    </div>
+                                    {{ item.nome }}
+                                </div>
+                            </td>
+                            <td>
+                                <div class="badge badge-neutral">{{ item.total_chamados or 0 }}</div>
+                            </td>
+                            <td>
+                                {% if item.tempo_medio %}
+                                    {{ "%.0f"|format(item.tempo_medio) }}s
+                                {% else %}
+                                    N/A
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if item.total_chamados and item.total_chamados > 0 %}
+                                    {% if item.total_chamados >= 10 %}
+                                        <div class="badge badge-success">Excelente</div>
+                                    {% elif item.total_chamados >= 5 %}
+                                        <div class="badge badge-warning">Bom</div>
+                                    {% else %}
+                                        <div class="badge badge-info">Iniciante</div>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="badge badge-neutral">Sem dados</div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-users-slash text-4xl text-base-content/20 mb-4"></i>
+                <p class="text-base-content/50">Nenhum dado de performance disponível</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Evolução Temporal -->
+    <div class="card bg-base-200 shadow-lg">
+        <div class="card-body">
+            <h3 class="card-title">
+                <i class="fas fa-calendar-alt text-primary"></i>
+                Chamados dos Últimos 30 Dias
+            </h3>
+            <canvas id="temporalChart" width="800" height="400"></canvas>
+            
+            {% if chamados_diarios %}
+            <div class="mt-4 text-sm">
+                <strong>Resumo:</strong> 
+                {{ chamados_diarios|length }} dias com atividade, 
+                média de {{ "%.1f"|format((chamados_diarios|sum(attribute='total'))/chamados_diarios|length) }} chamados/dia
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Métricas Resumidas -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="stat bg-base-200 rounded-lg">
+            <div class="stat-figure text-primary">
+                <i class="fas fa-ticket-alt text-2xl"></i>
+            </div>
+            <div class="stat-title">Total Geral</div>
+            <div class="stat-value text-primary">
+                {{ status_report|sum(attribute='total') if status_report else 0 }}
+            </div>
+            <div class="stat-desc">Todos os chamados</div>
+        </div>
+        
+        <div class="stat bg-base-200 rounded-lg">
+            <div class="stat-figure text-success">
+                <i class="fas fa-check-circle text-2xl"></i>
+            </div>
+            <div class="stat-title">Taxa de Resolução</div>
+            <div class="stat-value text-success">
+                {% set total = status_report|sum(attribute='total') %}
+                {% set resolvidos = status_report|selectattr('status', 'equalto', 'resolvido')|list %}
+                {% if total > 0 and resolvidos %}
+                    {{ "%.0f"|format((resolvidos[0].total / total) * 100) }}%
+                {% else %}
+                    0%
+                {% endif %}
+            </div>
+            <div class="stat-desc">Chamados resolvidos</div>
+        </div>
+        
+        <div class="stat bg-base-200 rounded-lg">
+            <div class="stat-figure text-warning">
+                <i class="fas fa-exclamation-triangle text-2xl"></i>
+            </div>
+            <div class="stat-title">Alta Prioridade</div>
+            <div class="stat-value text-warning">
+                {% set alta_prio = prioridade_report|selectattr('prioridade', 'equalto', 'alta')|list %}
+                {{ alta_prio[0].total if alta_prio else 0 }}
+            </div>
+            <div class="stat-desc">Requer atenção</div>
+        </div>
+        
+        <div class="stat bg-base-200 rounded-lg">
+            <div class="stat-figure text-info">
+                <i class="fas fa-clock text-2xl"></i>
+            </div>
+            <div class="stat-title">Pendentes</div>
+            <div class="stat-value text-info">
+                {% set pendentes = 0 %}
+                {% for item in status_report %}
+                    {% if item.status in ['aberto', 'em_triagem', 'em_atendimento'] %}
+                        {% set pendentes = pendentes + item.total %}
+                    {% endif %}
+                {% endfor %}
+                {{ pendentes }}
+            </div>
+            <div class="stat-desc">Aguardando resolução</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Gráfico de Status
+    const statusCtx = document.getElementById('statusChart').getContext('2d');
+    new Chart(statusCtx, {
+        type: 'doughnut',
+        data: {
+            labels: [
+                {% for item in status_report %}
+                    '{{ item.status.replace("_", " ").title() }}'{{ ',' if not loop.last }}
+                {% endfor %}
+            ],
+            datasets: [{
+                data: [
+                    {% for item in status_report %}
+                        {{ item.total }}{{ ',' if not loop.last }}
+                    {% endfor %}
+                ],
+                backgroundColor: [
+                    '#ef4444', // error (aberto)
+                    '#f59e0b', // warning (triagem)
+                    '#3b82f6', // info (atendimento)
+                    '#10b981', // success (resolvido)
+                    '#6b7280'  // neutral (fechado)
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
+
+    // Gráfico de Prioridade
+    const prioridadeCtx = document.getElementById('prioridadeChart').getContext('2d');
+    new Chart(prioridadeCtx, {
+        type: 'bar',
+        data: {
+            labels: [
+                {% for item in prioridade_report %}
+                    '{{ item.prioridade.title() }}'{{ ',' if not loop.last }}
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Chamados',
+                data: [
+                    {% for item in prioridade_report %}
+                        {{ item.total }}{{ ',' if not loop.last }}
+                    {% endfor %}
+                ],
+                backgroundColor: [
+                    '#ef4444', // alta
+                    '#f59e0b', // media
+                    '#3b82f6'  // baixa
+                ]
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Gráfico de Tipos
+    const tiposCtx = document.getElementById('tiposChart').getContext('2d');
+    new Chart(tiposCtx, {
+        type: 'horizontalBar',
+        data: {
+            labels: [
+                {% for item in tipo_report %}
+                    '{{ item.tipo_problema.replace("_", " ").title() }}'{{ ',' if not loop.last }}
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Ocorrências',
+                data: [
+                    {% for item in tipo_report %}
+                        {{ item.total }}{{ ',' if not loop.last }}
+                    {% endfor %}
+                ],
+                backgroundColor: '#3b82f6'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                x: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+
+    // Gráfico Temporal
+    const temporalCtx = document.getElementById('temporalChart').getContext('2d');
+    new Chart(temporalCtx, {
+        type: 'line',
+        data: {
+            labels: [
+                {% for item in chamados_diarios %}
+                    '{{ item.data }}'{{ ',' if not loop.last }}
+                {% endfor %}
+            ],
+            datasets: [{
+                label: 'Chamados por Dia',
+                data: [
+                    {% for item in chamados_diarios %}
+                        {{ item.total }}{{ ',' if not loop.last }}
+                    {% endfor %}
+                ],
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.3,
+                fill: true
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

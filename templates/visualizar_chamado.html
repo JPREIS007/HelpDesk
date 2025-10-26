@@ -1,0 +1,282 @@
+{% extends "base.html" %}
+
+{% block title %}Chamado {{ chamado.numero_protocolo }} - Help Desk{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto space-y-6">
+    <!-- Header do Chamado -->
+    <div class="card bg-base-200 shadow-lg">
+        <div class="card-body">
+            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
+                <div>
+                    <h1 class="text-2xl font-bold">{{ chamado.titulo }}</h1>
+                    <div class="flex items-center gap-4 mt-2 text-sm">
+                        <span class="font-mono bg-base-300 px-2 py-1 rounded">
+                            {{ chamado.numero_protocolo }}
+                        </span>
+                        {% if chamado.prioridade == 'alta' %}
+                            <div class="badge badge-error">Prioridade Alta</div>
+                        {% elif chamado.prioridade == 'media' %}
+                            <div class="badge badge-warning">Prioridade Média</div>
+                        {% else %}
+                            <div class="badge badge-info">Prioridade Baixa</div>
+                        {% endif %}
+                        
+                        {% if chamado.status == 'aberto' %}
+                            <div class="badge badge-error">Aberto</div>
+                        {% elif chamado.status == 'em_triagem' %}
+                            <div class="badge badge-warning">Em Triagem</div>
+                        {% elif chamado.status == 'em_atendimento' %}
+                            <div class="badge badge-info">Em Atendimento</div>
+                        {% elif chamado.status == 'resolvido' %}
+                            <div class="badge badge-success">Resolvido</div>
+                        {% elif chamado.status == 'fechado' %}
+                            <div class="badge badge-neutral">Fechado</div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="text-right text-sm">
+                    <div>📅 Criado: {{ chamado.data_criacao.split(' ')[0] if chamado.data_criacao else 'N/A' }}</div>
+                    <div>🕒 Atualizado: {{ chamado.data_atualizacao.split(' ')[0] if chamado.data_atualizacao else 'N/A' }}</div>
+                    {% if chamado.tempo_atendimento and chamado.tempo_atendimento > 0 %}
+                    <div>⏱️ Tempo: {{ chamado.tempo_atendimento }}s</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Detalhes do Chamado -->
+        <div class="lg:col-span-2 space-y-6">
+            <!-- Descrição -->
+            <div class="card bg-base-200 shadow-lg">
+                <div class="card-body">
+                    <h3 class="card-title">
+                        <i class="fas fa-file-alt text-primary"></i>
+                        Descrição
+                    </h3>
+                    <div class="whitespace-pre-wrap">{{ chamado.descricao }}</div>
+                    
+                    <div class="divider"></div>
+                    
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <strong>Tipo:</strong> {{ chamado.tipo_problema.replace('_', ' ').title() }}
+                        </div>
+                        <div>
+                            <strong>Cliente:</strong> {{ chamado.cliente_nome }}
+                        </div>
+                        {% if session.user_profile != 'cliente' %}
+                        <div>
+                            <strong>Atendente:</strong> {{ chamado.atendente_nome or 'Não atribuído' }}
+                        </div>
+                        <div>
+                            <strong>Técnico:</strong> {{ chamado.tecnico_nome or 'Não atribuído' }}
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    {% if chamado.anexo_path %}
+                    <div class="mt-4">
+                        <strong>Anexo:</strong>
+                        <a href="{{ url_for('static', filename=chamado.anexo_path) }}" 
+                           target="_blank" class="btn btn-sm btn-outline ml-2">
+                            <i class="fas fa-download"></i>
+                            Baixar Arquivo
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Comentários -->
+            <div class="card bg-base-200 shadow-lg">
+                <div class="card-body">
+                    <h3 class="card-title">
+                        <i class="fas fa-comments text-primary"></i>
+                        Comentários ({{ comentarios|length }})
+                    </h3>
+                    
+                    <!-- Lista de comentários -->
+                    <div class="space-y-4 max-h-96 overflow-y-auto">
+                        {% for comentario in comentarios %}
+                        <div class="bg-base-100 p-4 rounded-lg">
+                            <div class="flex justify-between items-start mb-2">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-8 h-8 bg-primary text-primary-content rounded-full flex items-center justify-center text-sm">
+                                        {{ comentario.usuario_nome[0].upper() if comentario.usuario_nome else 'S' }}
+                                    </div>
+                                    <div>
+                                        <div class="font-semibold">{{ comentario.usuario_nome or 'Sistema' }}</div>
+                                        {% if comentario.tipo == 'sistema' %}
+                                            <div class="badge badge-xs badge-info">Sistema</div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="text-xs opacity-70">
+                                    {{ comentario.data_criacao.split(' ')[0] if comentario.data_criacao else 'N/A' }}
+                                </div>
+                            </div>
+                            <div class="whitespace-pre-wrap text-sm">{{ comentario.comentario }}</div>
+                        </div>
+                        {% endfor %}
+                        
+                        {% if not comentarios %}
+                        <div class="text-center py-4 text-base-content/50">
+                            <i class="fas fa-comment-slash text-2xl mb-2"></i>
+                            <p>Nenhum comentário ainda</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Adicionar comentário -->
+                    <div class="divider"></div>
+                    <form method="POST" action="{{ url_for('adicionar_comentario', id=chamado.id) }}">
+                        <div class="form-control">
+                            <textarea name="comentario" placeholder="Digite seu comentário..."
+                                      class="textarea textarea-bordered" rows="3" required></textarea>
+                        </div>
+                        <div class="form-control mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-paper-plane"></i>
+                                Adicionar Comentário
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Painel Lateral -->
+        <div class="space-y-6">
+            <!-- Atribuição (apenas para staff) -->
+            {% if session.user_profile in ['administrador', 'atendente'] and staff %}
+            <div class="card bg-base-200 shadow-lg">
+                <div class="card-body">
+                    <h3 class="card-title text-lg">
+                        <i class="fas fa-user-cog text-primary"></i>
+                        Atribuição
+                    </h3>
+                    
+                    <form method="POST" action="{{ url_for('atribuir_chamado', id=chamado.id) }}">
+                        <div class="form-control">
+                            <label class="label">
+                                <span class="label-text">Status</span>
+                            </label>
+                            <select name="status" class="select select-bordered select-sm">
+                                <option value="aberto" {{ 'selected' if chamado.status == 'aberto' else '' }}>Aberto</option>
+                                <option value="em_triagem" {{ 'selected' if chamado.status == 'em_triagem' else '' }}>Em Triagem</option>
+                                <option value="em_atendimento" {{ 'selected' if chamado.status == 'em_atendimento' else '' }}>Em Atendimento</option>
+                                <option value="resolvido" {{ 'selected' if chamado.status == 'resolvido' else '' }}>Resolvido</option>
+                                <option value="fechado" {{ 'selected' if chamado.status == 'fechado' else '' }}>Fechado</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-control mt-3">
+                            <label class="label">
+                                <span class="label-text">Atendente</span>
+                            </label>
+                            <select name="atendente_id" class="select select-bordered select-sm">
+                                <option value="">Não atribuído</option>
+                                {% for usuario in staff %}
+                                    {% if usuario.perfil == 'atendente' %}
+                                    <option value="{{ usuario.id }}" 
+                                            {{ 'selected' if usuario.id == chamado.atendente_id else '' }}>
+                                        {{ usuario.nome }}
+                                    </option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <div class="form-control mt-3">
+                            <label class="label">
+                                <span class="label-text">Técnico</span>
+                            </label>
+                            <select name="tecnico_id" class="select select-bordered select-sm">
+                                <option value="">Não atribuído</option>
+                                {% for usuario in staff %}
+                                    {% if usuario.perfil == 'tecnico' %}
+                                    <option value="{{ usuario.id }}"
+                                            {{ 'selected' if usuario.id == chamado.tecnico_id else '' }}>
+                                        {{ usuario.nome }}
+                                    </option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-sm mt-4 w-full">
+                            <i class="fas fa-save"></i>
+                            Salvar Atribuição
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Informações Adicionais -->
+            <div class="card bg-base-200 shadow-lg">
+                <div class="card-body">
+                    <h3 class="card-title text-lg">
+                        <i class="fas fa-info-circle text-primary"></i>
+                        Informações
+                    </h3>
+                    
+                    <div class="space-y-3 text-sm">
+                        {% if chamado.estimativa_resolucao %}
+                        <div class="flex justify-between">
+                            <span>Estimativa:</span>
+                            <span>{{ chamado.estimativa_resolucao }}s</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="flex justify-between">
+                            <span>Protocolo:</span>
+                            <span class="font-mono">{{ chamado.numero_protocolo }}</span>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <span>Criado em:</span>
+                            <span>{{ chamado.data_criacao.split(' ')[0] if chamado.data_criacao else 'N/A' }}</span>
+                        </div>
+                        
+                        {% if chamado.tempo_atendimento and chamado.tempo_atendimento > 0 %}
+                        <div class="flex justify-between">
+                            <span>Tempo resolução:</span>
+                            <span>{{ chamado.tempo_atendimento }}s</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ações -->
+            <div class="card bg-base-200 shadow-lg">
+                <div class="card-body">
+                    <h3 class="card-title text-lg">
+                        <i class="fas fa-cogs text-primary"></i>
+                        Ações
+                    </h3>
+                    
+                    <div class="space-y-2">
+                        <a href="{{ url_for('dashboard') }}" class="btn btn-outline btn-sm w-full">
+                            <i class="fas fa-arrow-left"></i>
+                            Voltar ao Dashboard
+                        </a>
+                        
+                        {% if session.user_profile == 'cliente' and chamado.status not in ['fechado'] %}
+                        <button class="btn btn-outline btn-sm w-full" onclick="document.querySelector('textarea[name=comentario]').focus()">
+                            <i class="fas fa-comment"></i>
+                            Adicionar Comentário
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

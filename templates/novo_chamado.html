@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Novo Chamado - Help Desk{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto">
+    <div class="card bg-base-200 shadow-lg">
+        <div class="card-body">
+            <h2 class="card-title text-2xl">
+                <i class="fas fa-plus text-primary"></i>
+                Novo Chamado
+            </h2>
+            <p class="text-base-content/70 mb-6">
+                Descreva seu problema e nossa equipe entrará em contato
+            </p>
+            
+            <form method="POST" enctype="multipart/form-data" class="space-y-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Título do Problema</span>
+                        <span class="label-text-alt text-error">*</span>
+                    </label>
+                    <input type="text" name="titulo" placeholder="Ex: Internet sem funcionar"
+                           class="input input-bordered" required>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Tipo de Problema</span>
+                        <span class="label-text-alt text-error">*</span>
+                    </label>
+                    <select name="tipo_problema" class="select select-bordered" required>
+                        <option value="">Selecione o tipo</option>
+                        <option value="sem_internet">🔴 Sem Internet</option>
+                        <option value="lentidao">🐌 Internet Lenta</option>
+                        <option value="problema_tecnico">⚙️ Problema Técnico</option>
+                        <option value="instalacao">🔧 Instalação</option>
+                        <option value="duvida_comercial">💼 Dúvida Comercial</option>
+                        <option value="cancelamento">❌ Cancelamento</option>
+                    </select>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Descrição Detalhada</span>
+                        <span class="label-text-alt text-error">*</span>
+                    </label>
+                    <textarea name="descricao" class="textarea textarea-bordered h-32" 
+                              placeholder="Descreva o problema com o máximo de detalhes possível..." required></textarea>
+                    <label class="label">
+                        <span class="label-text-alt">Inclua informações como: quando começou, equipamentos afetados, mensagens de erro</span>
+                    </label>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Anexar Arquivo</span>
+                        <span class="label-text-alt">Opcional</span>
+                    </label>
+                    <input type="file" name="anexo" accept=".png,.jpg,.jpeg,.gif,.pdf,.txt,.docx"
+                           class="file-input file-input-bordered">
+                    <label class="label">
+                        <span class="label-text-alt">PNG, JPG, PDF, TXT até 16MB</span>
+                    </label>
+                </div>
+                
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <div class="font-semibold">Como funciona?</div>
+                        <div class="text-sm">
+                            • A prioridade é calculada automaticamente baseada no tipo de problema<br>
+                            • Você receberá um número de protocolo para acompanhamento<br>
+                            • Nossa equipe entrará em contato em até 2 horas
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-control mt-8">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="fas fa-paper-plane"></i>
+                        Criar Chamado
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,5 @@
+# Dependências geradas automaticamente pelo App Maker
+# Stack: Python Flask + SQLite + Interface Responsiva
+
+Flask==3.0.0
+Werkzeug==3.0.1

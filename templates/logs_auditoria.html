@@ -1,0 +1,298 @@
+{% extends "base.html" %}
+
+{% block title %}Logs de Auditoria - Help Desk{% endblock %}
+
+{% block content %}
+<div class="space-y-6">
+    <!-- Header -->
+    <div>
+        <h1 class="text-3xl font-bold">Logs de Auditoria</h1>
+        <p class="text-base-content/70">Rastreamento completo de todas as ações do sistema</p>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card bg-base-200 shadow-lg">
+        <div class="card-body">
+            <h3 class="card-title">
+                <i class="fas fa-filter text-primary"></i>
+                Filtros
+            </h3>
+            
+            <form method="GET" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Usuário</span>
+                    </label>
+                    <input type="text" name="usuario" value="{{ filtros.usuario }}" 
+                           placeholder="Nome do usuário" class="input input-bordered input-sm">
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Ação</span>
+                    </label>
+                    <select name="acao" class="select select-bordered select-sm">
+                        <option value="">Todas as ações</option>
+                        {% for acao in acoes %}
+                        <option value="{{ acao.acao }}" 
+                                {{ 'selected' if acao.acao == filtros.acao else '' }}>
+                            {{ acao.acao }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Tabela</span>
+                    </label>
+                    <select name="tabela" class="select select-bordered select-sm">
+                        <option value="">Todas as tabelas</option>
+                        {% for tabela in tabelas %}
+                        <option value="{{ tabela.tabela }}"
+                                {{ 'selected' if tabela.tabela == filtros.tabela else '' }}>
+                            {{ tabela.tabela }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">&nbsp;</span>
+                    </label>
+                    <div class="flex gap-2">
+                        <button type="submit" class="btn btn-primary btn-sm">
+                            <i class="fas fa-search"></i>
+                            Filtrar
+                        </button>
+                        <a href="{{ url_for('logs_auditoria_view') }}" class="btn btn-outline btn-sm">
+                            <i class="fas fa-times"></i>
+                            Limpar
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Tabela de Logs -->
+    <div class="card bg-base-200 shadow-lg">
+        <div class="card-body">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="card-title">
+                    <i class="fas fa-history text-primary"></i>
+                    Registro de Atividades
+                </h3>
+                <div class="text-sm text-base-content/70">
+                    Total: {{ pagination.total }} registros
+                </div>
+            </div>
+            
+            {% if logs %}
+            <div class="overflow-x-auto">
+                <table class="table table-zebra">
+                    <thead>
+                        <tr>
+                            <th>Data/Hora</th>
+                            <th>Usuário</th>
+                            <th>Ação</th>
+                            <th>Tabela</th>
+                            <th>Registro</th>
+                            <th>IP</th>
+                            <th>Detalhes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td class="text-xs">
+                                {{ log.data_criacao.replace(' ', '<br>')|safe if log.data_criacao else 'N/A' }}
+                            </td>
+                            <td>
+                                {% if log.usuario_nome %}
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-6 h-6 bg-primary text-primary-content rounded-full flex items-center justify-center text-xs">
+                                            {{ log.usuario_nome[0].upper() }}
+                                        </div>
+                                        <span class="text-sm">{{ log.usuario_nome }}</span>
+                                    </div>
+                                {% else %}
+                                    <span class="text-gray-500">Sistema</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if log.acao == 'CREATE' %}
+                                    <div class="badge badge-success badge-sm">{{ log.acao }}</div>
+                                {% elif log.acao == 'UPDATE' %}
+                                    <div class="badge badge-warning badge-sm">{{ log.acao }}</div>
+                                {% elif log.acao == 'DELETE' %}
+                                    <div class="badge badge-error badge-sm">{{ log.acao }}</div>
+                                {% elif log.acao == 'LOGIN' %}
+                                    <div class="badge badge-info badge-sm">{{ log.acao }}</div>
+                                {% elif log.acao == 'LOGIN_FAILED' %}
+                                    <div class="badge badge-error badge-sm">FALHA LOGIN</div>
+                                {% elif log.acao == 'LOGOUT' %}
+                                    <div class="badge badge-neutral badge-sm">{{ log.acao }}</div>
+                                {% elif log.acao == 'SIMULATION' %}
+                                    <div class="badge badge-accent badge-sm">{{ log.acao }}</div>
+                                {% else %}
+                                    <div class="badge badge-neutral badge-sm">{{ log.acao }}</div>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="font-mono text-sm">{{ log.tabela }}</span>
+                            </td>
+                            <td>
+                                {% if log.registro_id %}
+                                    <span class="badge badge-outline badge-sm">ID: {{ log.registro_id }}</span>
+                                {% else %}
+                                    <span class="text-gray-500">-</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-xs">
+                                {{ log.ip_address or '-' }}
+                            </td>
+                            <td>
+                                {% if log.dados_novos %}
+                                    <button class="btn btn-ghost btn-xs" 
+                                            onclick="document.getElementById('modal-{{ loop.index }}').showModal()">
+                                        <i class="fas fa-eye"></i>
+                                    </button>
+                                    
+                                    <!-- Modal para detalhes -->
+                                    <dialog id="modal-{{ loop.index }}" class="modal">
+                                        <div class="modal-box">
+                                            <h3 class="font-bold text-lg">Detalhes da Ação</h3>
+                                            <div class="py-4">
+                                                <div class="grid grid-cols-2 gap-4 text-sm">
+                                                    <div>
+                                                        <strong>Ação:</strong> {{ log.acao }}<br>
+                                                        <strong>Tabela:</strong> {{ log.tabela }}<br>
+                                                        <strong>Registro:</strong> {{ log.registro_id or 'N/A' }}<br>
+                                                        <strong>Data:</strong> {{ log.data_criacao or 'N/A' }}
+                                                    </div>
+                                                    <div>
+                                                        <strong>Usuário:</strong> {{ log.usuario_nome or 'Sistema' }}<br>
+                                                        <strong>IP:</strong> {{ log.ip_address or 'N/A' }}<br>
+                                                        <strong>User Agent:</strong><br>
+                                                        <span class="text-xs break-all">{{ (log.user_agent[:50] + '...' if log.user_agent and log.user_agent|length > 50 else log.user_agent) or 'N/A' }}</span>
+                                                    </div>
+                                                </div>
+                                                
+                                                {% if log.dados_novos %}
+                                                <div class="mt-4">
+                                                    <strong>Dados:</strong>
+                                                    <div class="bg-base-300 p-2 rounded text-xs font-mono mt-2 max-h-32 overflow-y-auto">
+                                                        {{ log.dados_novos }}
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+                                                
+                                                {% if log.dados_anteriores %}
+                                                <div class="mt-4">
+                                                    <strong>Dados Anteriores:</strong>
+                                                    <div class="bg-base-300 p-2 rounded text-xs font-mono mt-2 max-h-32 overflow-y-auto">
+                                                        {{ log.dados_anteriores }}
+                                                    </div>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="modal-action">
+                                                <button class="btn" onclick="document.getElementById('modal-{{ loop.index }}').close()">Fechar</button>
+                                            </div>
+                                        </div>
+                                        <form method="dialog" class="modal-backdrop">
+                                            <button>close</button>
+                                        </form>
+                                    </dialog>
+                                {% else %}
+                                    <span class="text-gray-500">-</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Paginação -->
+            {% if pagination.total > 50 %}
+            <div class="flex justify-center mt-6">
+                <div class="join">
+                    {% if pagination.has_prev %}
+                        <a href="{{ url_for('logs_auditoria_view', page=pagination.prev_num, usuario=filtros.usuario, acao=filtros.acao, tabela=filtros.tabela) }}" 
+                           class="join-item btn">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    {% endif %}
+                    
+                    <button class="join-item btn btn-active">
+                        Página {{ pagination.page }}
+                    </button>
+                    
+                    {% if pagination.has_next %}
+                        <a href="{{ url_for('logs_auditoria_view', page=pagination.next_num, usuario=filtros.usuario, acao=filtros.acao, tabela=filtros.tabela) }}" 
+                           class="join-item btn">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+            
+            {% else %}
+            <div class="text-center py-8">
+                <i class="fas fa-search text-4xl text-base-content/20 mb-4"></i>
+                <p class="text-base-content/50">Nenhum log encontrado com os filtros aplicados</p>
+                <a href="{{ url_for('logs_auditoria_view') }}" class="btn btn-outline mt-4">
+                    <i class="fas fa-refresh"></i>
+                    Ver Todos os Logs
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Estatísticas -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="stat bg-base-200 rounded-lg">
+            <div class="stat-figure text-info">
+                <i class="fas fa-history text-2xl"></i>
+            </div>
+            <div class="stat-title">Total Registros</div>
+            <div class="stat-value text-info">{{ pagination.total }}</div>
+        </div>
+        
+        <div class="stat bg-base-200 rounded-lg">
+            <div class="stat-figure text-success">
+                <i class="fas fa-plus text-2xl"></i>
+            </div>
+            <div class="stat-title">Criações</div>
+            <div class="stat-value text-success">
+                {{ logs|selectattr('acao', 'equalto', 'CREATE')|list|length if logs else 0 }}
+            </div>
+        </div>
+        
+        <div class="stat bg-base-200 rounded-lg">
+            <div class="stat-figure text-warning">
+                <i class="fas fa-edit text-2xl"></i>
+            </div>
+            <div class="stat-title">Alterações</div>
+            <div class="stat-value text-warning">
+                {{ logs|selectattr('acao', 'equalto', 'UPDATE')|list|length if logs else 0 }}
+            </div>
+        </div>
+        
+        <div class="stat bg-base-200 rounded-lg">
+            <div class="stat-figure text-primary">
+                <i class="fas fa-sign-in-alt text-2xl"></i>
+            </div>
+            <div class="stat-title">Logins</div>
+            <div class="stat-value text-primary">
+                {{ logs|selectattr('acao', 'equalto', 'LOGIN')|list|length if logs else 0 }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
